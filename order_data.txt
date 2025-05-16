@@ -1,0 +1,32 @@
+[
+  {
+    "order_id": "123",
+    "customer_name": "Alice Chen",
+    "items": [
+      "T-shirt",
+      "Jeans"
+    ],
+    "address": "Xicheng District, Beijing",
+    "status": "Processing"
+  },
+  {
+    "order_id": "456",
+    "customer_name": "Bob Wang",
+    "items": [
+      "Dress",
+      "Shoes"
+    ],
+    "address": "Haidian District, Beijing",
+    "status": "Shipped"
+  },
+  {
+    "order_id": "789",
+    "customer_name": "Charlie Liu",
+    "items": [
+      "Jacket",
+      "Hat"
+    ],
+    "address": "Dongcheng District, Beijing",
+    "status": "Delivered"
+  }
+]
