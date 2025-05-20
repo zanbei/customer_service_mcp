@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict
 from langchain.prompts import ChatPromptTemplate
 from agents.base_agent import BaseAgent
 from services.order_service import OrderService
@@ -27,7 +27,7 @@ Guidelines:
 - DO NOT USE PHRASES LIKE "BEST REGARDS" OR OTHER FORMAL CLOSINGS
 - DO NOT RESPOND AS THE CUSTOMER
 - PAY SPECIAL ATTENTION TO DELIVERY TIMEFRAMES AND COMPENSATION POLICIES"""),
-            ("user", """Order Information:
+            ("human", """Order Information:
 {order_info}
 
 Customer Question: {question}""")
@@ -47,21 +47,21 @@ Customer Question: {question}""")
             f"- Delivery Address: {order_info['address']}"
         )
     
-    def _format_history(self, history: list) -> str:
+    def _format_history(self, history: List[Dict[str, str]]) -> str:
         """Format conversation history."""
         if not history:
             return "No previous conversation."
-        return "\n".join([f"{'Customer' if i%2==0 else 'Agent'}: {msg['content']}" 
-                         for i, msg in enumerate(history)])
+        return "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in history])
     
     def process(self, user_input: str, conversation_id: Optional[str] = None, 
-                order_id: Optional[str] = None, **kwargs) -> tuple[str, str]:
+                order_id: Optional[str] = None, history: List[Dict[str, str]] = None, **kwargs) -> tuple[str, str]:
         """Process logistics-related customer inquiries.
         
         Args:
             user_input: The user's question
             conversation_id: Optional conversation ID for maintaining context
             order_id: Optional order ID if already known
+            history: List of previous messages in the conversation
             
         Returns:
             tuple[str, str]: (response message, conversation_id)
@@ -74,21 +74,15 @@ Customer Question: {question}""")
         if order_id:
             order_info = self.order_service.get_order_info(order_id)
         
-        # Get conversation history
-        history = self._get_history(conversation_id)
-        
         # Prepare the chain
         chain = self.prompt | self.llm
         
         # Get response
         response = chain.invoke({
             "decision_tree": self.sop_service.logistics_decision_tree,
-            "history": self._format_history(history),
+            "history": self._format_history(history or []),
             "order_info": self._format_order_info(order_info),
             "question": user_input
         })
-        
-        # Update conversation history
-        self._update_history(conversation_id, user_input, response.content)
         
         return response.content, conversation_id

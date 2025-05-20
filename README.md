@@ -18,6 +18,7 @@ customer_service_mcp/
 │   └── mcp_config.py         # MCP server configuration
 ├── main.py                   # Main application entry point
 ├── requirements.txt          # Project dependencies
+├── server.py                 # MCP server implementation
 └── README.md                 # Project documentation
 ```
 

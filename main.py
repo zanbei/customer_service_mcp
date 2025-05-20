@@ -41,11 +41,18 @@ class CustomerServiceSystem:
         # Generate conversation ID if not provided
         if not conversation_id:
             conversation_id = str(uuid.uuid4())
-            self.conversations[conversation_id] = {"order_id": None}
+            self.conversations[conversation_id] = {"order_id": None, "history": []}
+        
+        # Add user question to conversation history
+        self.conversations[conversation_id]["history"].append({"role": "user", "content": user_question})
         
         # First layer: Intent recognition
-        intent, _ = self.intent_agent.process(user_question, conversation_id)
-        
+        intent, _ = self.intent_agent.process(
+            user_question,
+            conversation_id,
+            history=self.conversations[conversation_id]["history"]
+        )
+        print(f"Intent recognized: {intent}")
         # Extract order ID if present in the question
         import re
         order_id_match = re.search(r'order\s+(?:id\s+)?(?:number\s+)?(?:#\s*)?(\d+)', 
@@ -58,16 +65,21 @@ class CustomerServiceSystem:
             response, _ = self.order_agent.process(
                 user_question, 
                 conversation_id,
-                order_id=self.conversations[conversation_id].get("order_id")
+                order_id=self.conversations[conversation_id].get("order_id"),
+                history=self.conversations[conversation_id]["history"]
             )
         elif intent == "LOGISTICS":
             response, _ = self.logistics_agent.process(
                 user_question,
                 conversation_id,
-                order_id=self.conversations[conversation_id].get("order_id")
+                order_id=self.conversations[conversation_id].get("order_id"),
+                history=self.conversations[conversation_id]["history"]
             )
         else:
             response = "I'm not sure if your question is about an order or logistics issue. Could you please provide more details?"
+        
+        # Add agent response to conversation history
+        self.conversations[conversation_id]["history"].append({"role": "assistant", "content": response})
         
         return response, conversation_id
 
