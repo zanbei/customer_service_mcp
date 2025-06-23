@@ -12,3 +12,4 @@ fastmcp
 pyaudio>=0.2.11
 amazon-transcribe>=0.5.0
 aiofile>=3.8.1
+pygame
